@@ -1,43 +1,144 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchWeather } from '../redux/reducers';
-import styled from 'styled-components';
-const Weather = () => {
-  const dispatch = useDispatch();
-  const weather = useSelector((state) => state.app.weather);
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+export default function Weather() {
+  const [cityInput, setCityInput] = useState('');
+  const [weather, setWeather] = useState({
+    data: null,
+    loading: false,
+    error: ''
+  });
+  const [city, setCity] = useState('New York');
 
   useEffect(() => {
-    dispatch(fetchWeather('New York')); // Default city
-  }, [dispatch]);
+    fetchWeather();
+  }, [city]);
 
-  if (weather.status === 'loading') {
-    return <div>Loading...</div>;
+  async function fetchWeather() {
+    setWeather(prev => ({ ...prev, loading: true, error: '' }));
+    try {
+      const apiKey = '689e563a4664417e5bbde0e2ba455089';
+      const response = await axios.get(
+        `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`
+      );
+      setWeather({
+        data: response.data,
+        loading: false,
+        error: ''
+      });
+    } catch (err) {
+      setWeather(prev => ({
+        ...prev,
+        loading: false,
+        error: err.message || 'Failed to fetch weather data'
+      }));
+    }
   }
 
-  if (weather.status === 'failed') {
-    return <div>Error fetching weather data</div>;
-  }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (cityInput.trim()) {
+      setCity(cityInput);
+      setCityInput('');
+    }
+  };
+
+  const getWeatherIcon = (weatherCode) => {
+    // Map weather codes to appropriate icons
+    if (weatherCode >= 200 && weatherCode < 300) {
+      return '⛈️'; // Thunderstorm
+    } else if (weatherCode >= 300 && weatherCode < 400) {
+      return '🌧️'; // Drizzle
+    } else if (weatherCode >= 500 && weatherCode < 600) {
+      return '🌧️'; // Rain
+    } else if (weatherCode >= 600 && weatherCode < 700) {
+      return '❄️'; // Snow
+    } else if (weatherCode >= 700 && weatherCode < 800) {
+      return '🌫️'; // Atmosphere (fog, mist, etc.)
+    } else if (weatherCode === 800) {
+      return '☀️'; // Clear sky
+    } else if (weatherCode > 800) {
+      return '☁️'; // Clouds
+    }
+    return '🌡️'; // Default
+  };
 
   return (
-    <Container>
-    <div>
-      {weather.data && (
-        <div>
-          <h2 class="heading1">{weather.data.name}</h2>
-          <p>{Math.round(weather.data.main.temp - 273.15)}°C</p>
+    <div className="relative">
+      <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-indigo-600 mb-6 text-center">Weather</h2>
+      
+      <form onSubmit={handleSubmit} className="mb-6">
+        <div className="flex gap-2 relative">
+          <input
+            type="text"
+            value={cityInput}
+            onChange={(e) => setCityInput(e.target.value)}
+            placeholder="Enter city name"
+            className="flex-1 px-4 py-3 rounded-lg border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+            disabled={weather.loading}
+          />
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={weather.loading}
+          >
+            {weather.loading ? 'Searching...' : 'Search'}
+          </button>
+        </div>
+      </form>
+      
+      {weather.loading && (
+        <div className="text-center py-8">
+          <div className="animate-pulse-slow flex flex-col items-center">
+            <div className="w-16 h-16 bg-purple-200 rounded-full mb-4"></div>
+            <div className="h-6 bg-purple-200 rounded w-24 mb-2"></div>
+            <div className="h-4 bg-purple-100 rounded w-32 mb-6"></div>
+            <div className="grid grid-cols-2 gap-8 w-full">
+              <div className="h-16 bg-purple-100 rounded"></div>
+              <div className="h-16 bg-purple-100 rounded"></div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {weather.error && (
+        <div className="text-center py-8 bg-red-50 rounded-lg border border-red-100 px-4">
+          <p className="text-red-500 mb-4">Error: {weather.error}</p>
+          <button 
+            onClick={fetchWeather}
+            className="btn-primary"
+          >
+            Try Again
+          </button>
+        </div>
+      )}
+      
+      {weather.data && !weather.loading && !weather.error && (
+        <div className="flex flex-col items-center">
+          <div className="flex items-center justify-center gap-6 mb-6 transform hover:scale-105 transition-all duration-300">
+            <span className="weather-icon">{getWeatherIcon(weather.data.weather[0].id)}</span>
+            <div>
+              <h3 className="weather-temp">{Math.round(weather.data.main.temp)}°C</h3>
+              <p className="weather-desc">{weather.data.weather[0].description}</p>
+            </div>
+          </div>
+          
+          <div className="w-full grid grid-cols-2 gap-6 mb-6">
+            <div className="glass-card p-4 rounded-xl text-center transform hover:scale-105 transition-all duration-300">
+              <p className="text-sm text-gray-600 mb-1">Humidity</p>
+              <p className="text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600">{weather.data.main.humidity}%</p>
+            </div>
+            <div className="glass-card p-4 rounded-xl text-center transform hover:scale-105 transition-all duration-300">
+              <p className="text-sm text-gray-600 mb-1">Wind</p>
+              <p className="text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600">{Math.round(weather.data.wind.speed)} m/s</p>
+            </div>
+          </div>
+          
+          <p className="text-center text-lg font-medium mb-4 bg-white/30 px-4 py-1 rounded-full backdrop-blur-sm">
+            {weather.data.name}, {weather.data.sys.country}
+          </p>
         </div>
       )}
     </div>
-    </Container>
   );
-};
-
-export default Weather;
-const Container = styled.div`
-.heading1, p{
-font-size: 40px;
-  font-weight: 600;
-  color: #fdfdfe;
-  text-shadow: 0px 0px 5px #b393d3, 0px 0px 10px #b393d3, 0px 0px 10px #b393d3,
-    0px 0px 20px #b393d3;}
-`
+}

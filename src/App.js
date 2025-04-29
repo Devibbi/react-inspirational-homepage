@@ -5,37 +5,46 @@ import Weather from './components/Weather';
 import Quote from './components/Quote';
 import ImageGallery from './components/ImageGallery';
 import GoalsList from './components/GoalsList';
-import styled from 'styled-components';
-
+import './styles/globals.css';
 
 function App() {
   return (
-    <Container>
-    <Provider store={store}>
-      <div style={{ textAlign: 'center', padding: '20px' }}>
-        <h1 class="heading">Inspirational Homepage</h1>
-        <Weather />
-        <ImageGallery />
-        <Quote />
-        <GoalsList />
-      </div>
-    </Provider>
-    </Container>
+    <div className="min-h-screen bg-gradient-to-br from-purple-400/30 via-indigo-300/20 to-pink-300/30 bg-fixed p-4">
+      <Provider store={store}>
+        <div className="max-w-7xl mx-auto">
+          <header className="text-center mb-8">
+            <h1 className="text-5xl font-extrabold heading-gradient mb-4">
+              Inspirational Homepage
+            </h1>
+            <p className="text-xl text-purple-700 max-w-2xl mx-auto">
+              Your daily dose of motivation, beautiful imagery, and personal goals tracking
+            </p>
+          </header>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="glass-card p-6 rounded-3xl shadow-xl">
+              <Quote />
+            </div>
+            <div className="glass-card p-6 rounded-3xl shadow-xl">
+              <Weather />
+            </div>
+          </div>
+          
+          <div className="glass-card p-6 rounded-3xl shadow-xl mb-6">
+            <ImageGallery />
+          </div>
+          
+          <div className="glass-card p-6 rounded-3xl shadow-xl mb-6">
+            <GoalsList />
+          </div>
+          
+          <footer className="text-center text-sm text-gray-600 mt-8">
+            <p> 2025 Inspirational Homepage • Made with and React</p>
+          </footer>
+        </div>
+      </Provider>
+    </div>
   );
 }
 
 export default App;
-
-const Container= styled.div`
-  background-image: url('https://images.pexels.com/photos/129731/pexels-photo-129731.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-.heading{
-font-size: 70px;
-  font-weight: 600;
-  color: #fdfdfe;
-  text-shadow: 0px 0px 5px #b393d3, 0px 0px 10px #b393d3, 0px 0px 10px #b393d3,
-    0px 0px 20px #b393d3;}
-
-`;
